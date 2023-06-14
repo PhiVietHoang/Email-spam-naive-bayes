@@ -4,8 +4,9 @@ import matplotlib.pyplot as plt
 from imblearn.over_sampling import RandomOverSampler
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, roc_curve, auc
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, roc_curve, auc, precision_recall_curve, plot_precision_recall_curve
 from sklearn.naive_bayes import MultinomialNB
+from sklearn.model_selection import cross_val_score
 
 # Load the dataset
 data = pd.read_csv('mail_data.csv')
@@ -53,6 +54,32 @@ print(report)
 # Calculate probabilities for the positive class
 y_prob = model.predict_proba(X_test_vectorized.toarray())[:, 1]
 
+# Print classification report
+report = classification_report(y_test, y_pred)
+print('Classification Report:')
+print(report)
+
+# Confusion Matrix
+plt.figure()
+plt.imshow(confusion, cmap='Blues')
+plt.title('Confusion Matrix')
+plt.colorbar()
+plt.xticks([0, 1], ['Predicted Ham', 'Predicted Spam'])
+plt.yticks([0, 1], ['Actual Ham', 'Actual Spam'])
+plt.xlabel('Predicted Label')
+plt.ylabel('True Label')
+plt.show()
+
+# Precision-Recall Curve
+precision, recall, _ = precision_recall_curve(y_test.map({'spam': 1, 'ham': 0}), y_prob)
+plt.figure()
+plt.step(recall, precision, color='b', alpha=0.2, where='post')
+plt.fill_between(recall, precision, alpha=0.2, color='b')
+plt.xlabel('Recall')
+plt.ylabel('Precision')
+plt.title('Precision-Recall Curve')
+plt.show()
+
 # Compute ROC curve and AUC
 fpr, tpr, thresholds = roc_curve(y_test.map({'spam': 1, 'ham': 0}), y_prob)
 roc_auc = auc(fpr, tpr)
@@ -69,6 +96,15 @@ plt.title('Receiver Operating Characteristic')
 plt.legend(loc="lower right")
 plt.show()
 
+# Perform cross-validation with 5 folds
+scores = cross_val_score(model, X_train_vectorized, y_train, cv=5, scoring='accuracy')
+
+# Print the accuracy scores for each fold
+print('Accuracy scores for each fold:', scores)
+
+# Calculate the mean accuracy score
+mean_accuracy = scores.mean()
+print('Mean Accuracy:', mean_accuracy)
 
 with open('test.txt', 'r') as file:
     input_mail = [file.read()]
