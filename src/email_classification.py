@@ -15,8 +15,39 @@ data = pd.read_csv('mail_data.csv')
 X = data['Message']
 y = data['Category']
 
+# Analyze the distribution of categories before oversampling
+category_counts_before = data['Category'].value_counts()
+category_labels = category_counts_before.index
+
+plt.figure(figsize=(6, 6))
+plt.pie(category_counts_before, labels=category_labels, autopct='%1.1f%%', startangle=90)
+plt.title('Distribution of Email Categories (Before Oversampling)')
+plt.axis('equal')
+plt.show()
+
+# Apply oversampling to balance the classes
+oversampler = RandomOverSampler(random_state=42)
+X_resampled, y_resampled = oversampler.fit_resample(X.values.reshape(-1, 1), y)
+
+# Convert the resampled data back to a DataFrame
+data_resampled = pd.DataFrame({'Message': X_resampled.ravel(), 'Category': y_resampled})
+
+# Analyze the distribution of categories after oversampling
+category_counts_after = data_resampled['Category'].value_counts()
+
+plt.figure(figsize=(6, 6))
+plt.pie(category_counts_after, labels=category_labels, autopct='%1.1f%%', startangle=90)
+plt.title('Distribution of Email Categories (After Oversampling)')
+plt.axis('equal') 
+plt.show()
+
+# Split the resampled data into features and labels
+X_resampled = data_resampled['Message']
+y_resampled = data_resampled['Category']
+
+
 # Split the dataset into training and testing sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X_resampled, y_resampled, test_size=0.2, random_state=42)
 
 # Convert the text data into numerical features using CountVectorizer
 vectorizer = CountVectorizer()
